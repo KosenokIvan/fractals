@@ -2,18 +2,24 @@ from typing import Dict
 
 
 class LSystem:
-    def __init__(self, axiom: str, theorems: Dict[str, str]):
+    def __init__(self, axiom: str, theorems: Dict[str, str], cash_size: int = 16):
         self.axiom = axiom
         self.theorems = theorems
+        self.cash = [""] * cash_size
+        self.cash[0] = self.axiom
 
     def get_l_string(self, index: int):
         if index < 0:
             raise ValueError("Negative index")
         if index == 0:
             return self.axiom
+        if index < len(self.cash) and self.cash[index] != "":
+            return self.cash[index]
         result = ""
         for char in self.get_l_string(index - 1):
             result += self.theorems.get(char, char)
+        if index < len(self.cash):
+            self.cash[index] = result
         return result
 
 
