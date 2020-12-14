@@ -11,8 +11,6 @@ class LSystem:
     def get_l_string(self, index: int):
         if index < 0:
             raise ValueError("Negative index")
-        if index == 0:
-            return self.axiom
         if index < len(self.cash) and self.cash[index] != "":
             return self.cash[index]
         result = ""

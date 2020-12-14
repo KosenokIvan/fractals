@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>900</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="image_container">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>10</y>
+      <width>512</width>
+      <height>512</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid black</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>351</width>
+      <height>511</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Аксиома</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Теоремы</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QScrollArea" name="theorems_sa">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>347</width>
+          <height>425</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="axiom_input"/>
+     </item>
+     <item row="3" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="previous_iteration_btn">
+         <property name="text">
+          <string>&lt;&lt;&lt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="iteration_count_output">
+         <property name="text">
+          <string>Итерация: 0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="next_iteration_btn">
+         <property name="text">
+          <string>&gt;&gt;&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>900</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
