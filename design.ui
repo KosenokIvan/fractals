@@ -28,7 +28,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Генератор фракталов</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="image_container">
@@ -128,8 +128,20 @@
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Изображение</string>
+    </property>
+    <addaction name="save_image_action"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="save_image_action">
+   <property name="text">
+    <string>Сохранить в файл</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

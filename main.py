@@ -1,7 +1,7 @@
 import sys
 from math import sin, cos, radians
 from typing import Dict
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PyQt5.QtGui import QPainter, QPixmap, QImage, QPen, QColor
 from PyQt5 import uic
 from l_system import LSystem
@@ -11,6 +11,7 @@ class FractalGenerator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.parser = LStringParser("X", {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"}, 16)
+        self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
         self.iteration = 0
         self.initUI()
 
@@ -18,12 +19,13 @@ class FractalGenerator(QMainWindow):
         uic.loadUi("design.ui", self)
         self.next_iteration_btn.clicked.connect(self.next_iteration)
         self.previous_iteration_btn.clicked.connect(self.previous_iteration)
+        self.save_image_action.triggered.connect(self.save_in_file)
         self.draw()
 
     def draw(self):
-        image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        self.parser.draw(self.iteration, 10, 90, image, 10, 502)
-        self.image_container.setPixmap(QPixmap.fromImage(image))
+        self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
+        self.parser.draw(self.iteration, 10, 90, self.image, 10, 502)
+        self.image_container.setPixmap(QPixmap.fromImage(self.image))
         self.iteration_count_output.setText(f"Итерация: {self.iteration}")
 
     def next_iteration(self):
@@ -35,6 +37,10 @@ class FractalGenerator(QMainWindow):
         if self.iteration > 0:
             self.iteration -= 1
             self.draw()
+
+    def save_in_file(self):
+        filename = QFileDialog.getSaveFileName(self, "Выберите файл", "", "Изображение(*.png)")[0]
+        self.image.save(filename)
 
 
 class LStringParser(LSystem):
@@ -70,6 +76,7 @@ class LStringParser(LSystem):
             elif char == "]":
                 angle, x_coord, y_coord = save_data.pop()
         qp.end()
+
 
 def excepthook(cls, value, traceback):
     sys.__excepthook__(cls, value, traceback)
