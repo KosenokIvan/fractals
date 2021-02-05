@@ -12,7 +12,8 @@ class FractalGeneratorWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.l_system_config_manager = LSystemConfigManager(self, "X",
-                                                            {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"})
+                                                            {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"},
+                                                            90)
         self.parser = LStringParser("X", {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"}, 16)
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
         self.iteration = 0
@@ -28,7 +29,8 @@ class FractalGeneratorWindow(QMainWindow):
 
     def draw(self):
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        self.parser.draw(self.iteration, 10, 90, self.image, 10, 502)
+        self.parser.draw(self.iteration, 10, self.l_system_config_manager.get_rotate_angle(),
+                         self.image, 10, 502)
         self.image_container.setPixmap(QPixmap.fromImage(self.image))
         self.iteration_count_output.setText(f"Итерация: {self.iteration}")
 
@@ -60,10 +62,12 @@ class FractalGeneratorWindow(QMainWindow):
 
 
 class LSystemConfigManager:
-    def __init__(self, fr_generator: FractalGeneratorWindow, axiom: str, theorems: Dict[str, str]):
+    def __init__(self, fr_generator: FractalGeneratorWindow, axiom: str,
+                 theorems: Dict[str, str], rotate_angle: int):
         self.fr_generator = fr_generator
         self.axiom = axiom
         self.theorems = theorems.copy()
+        self.rotate_angle = rotate_angle
 
     def get_axiom(self):
         return self.axiom
@@ -83,6 +87,12 @@ class LSystemConfigManager:
     def set_theorem(self, key: str, value: str):
         self.theorems[key] = value
 
+    def get_rotate_angle(self):
+        return self.rotate_angle
+
+    def set_rotate_angle(self, value: int):
+        self.rotate_angle = value
+
     def update_generator_configuration(self):
         self.fr_generator.update_l_system_configuration()
 
@@ -100,6 +110,7 @@ class LSystemConfigWindow(QMainWindow):
         self.add_theorem_btn.clicked.connect(lambda: self.add_theorem())
         self.confirm_btn.clicked.connect(self.update_manager)
         self.axiom_input.setText(self.manager.get_axiom())
+        self.rotate_angle_input.setValue(self.manager.get_rotate_angle())
         for th_input, th_output in self.manager.get_theorems().items():
             self.add_theorem(th_input, th_output)
 
@@ -124,8 +135,10 @@ class LSystemConfigWindow(QMainWindow):
                                            cst.STATUS_BAR_TIMEOUT)
                 return
             theorems[th_input] = th_output
+        rotate_angle = self.rotate_angle_input.value()
         self.manager.set_axiom(axiom)
         self.manager.set_theorems(theorems)
+        self.manager.set_rotate_angle(rotate_angle)
         self.manager.update_generator_configuration()
         self.close()
 
