@@ -4,11 +4,14 @@ from typing import Dict
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QVBoxLayout, QWidget
 from PyQt5.QtGui import QPainter, QPixmap, QImage, QPen, QColor
 from PyQt5 import uic
+from image_window import Ui_MainWindow as UIImageWindow
+from l_system_config_window import Ui_MainWindow as UILSystemConfigWindow
+from theorem_widget import Ui_Form as UITheoremWidget
 from l_system import LSystem
 import constants as cst
 
 
-class FractalGeneratorWindow(QMainWindow):
+class FractalGeneratorWindow(QMainWindow, UIImageWindow):
     def __init__(self):
         super().__init__()
         self.l_system_config_manager = LSystemConfigManager(self, "X",
@@ -20,7 +23,7 @@ class FractalGeneratorWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        uic.loadUi("design/image_window.ui", self)
+        self.setupUi(self)
         self.next_iteration_btn.clicked.connect(self.next_iteration)
         self.previous_iteration_btn.clicked.connect(self.previous_iteration)
         self.save_image_action.triggered.connect(self.save_in_file)
@@ -97,7 +100,7 @@ class LSystemConfigManager:
         self.fr_generator.update_l_system_configuration()
 
 
-class LSystemConfigWindow(QMainWindow):
+class LSystemConfigWindow(QMainWindow, UILSystemConfigWindow):
     def __init__(self, parent, manager: LSystemConfigManager):
         super().__init__(parent)
         self.manager = manager
@@ -106,7 +109,7 @@ class LSystemConfigWindow(QMainWindow):
         self.theorems_sa.setWidget(self.theorems_list)
 
     def initUI(self):
-        uic.loadUi("design/l_system_config_window.ui", self)
+        self.setupUi(self)
         self.add_theorem_btn.clicked.connect(lambda: self.add_theorem())
         self.confirm_btn.clicked.connect(self.update_manager)
         self.axiom_input.setText(self.manager.get_axiom())
@@ -160,7 +163,7 @@ class TheoremsListWidget(QWidget):
         return result
 
 
-class TheoremWidget(QWidget):
+class TheoremWidget(QWidget, UITheoremWidget):
     def __init__(self, parent, th_input="", th_output=""):
         super().__init__(parent)
         self.initUI()
@@ -168,7 +171,7 @@ class TheoremWidget(QWidget):
         self.theorem_output.setText(th_output)
 
     def initUI(self):
-        uic.loadUi("design/theorem_widget.ui", self)
+        self.setupUi(self)
         self.delete_theorem_btn.clicked.connect(self.delete)
 
     def get_theorem(self):
