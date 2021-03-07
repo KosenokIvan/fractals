@@ -16,6 +16,7 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
         super().__init__()
         self.l_config_manager = LSystemConfigManager(self, cst.INIT_AXIOM,
                                                      cst.INIT_THEOREMS,
+                                                     cst.INIT_LINE_LENGTH,
                                                      cst.INIT_DELTA_ANGLE)
         self.parser = LStringParser(cst.INIT_AXIOM, cst.INIT_THEOREMS, cst.CASH_SIZE)
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
@@ -32,7 +33,8 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
 
     def draw(self):
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        l_string_length = self.parser.draw(self.l_config_manager.get_iteration(), cst.LINE_LENGTH,
+        l_string_length = self.parser.draw(self.l_config_manager.get_iteration(),
+                                           self.l_config_manager.get_line_length(),
                                            self.l_config_manager.get_rotate_angle(),
                                            self.image, 10, 502)
         self.l_config_manager.set_l_string_length(l_string_length)
@@ -75,10 +77,11 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
 
 class LSystemConfigManager:
     def __init__(self, fr_generator: FractalGeneratorWindow, axiom: str,
-                 theorems: Dict[str, str], rotate_angle: int):
+                 theorems: Dict[str, str], line_length: int, rotate_angle: int):
         self.fr_generator = fr_generator
         self.axiom = axiom
         self.theorems = theorems.copy()
+        self.line_length = line_length
         self.rotate_angle = rotate_angle
         self.iteration = 0
         self.l_string_length = 0
@@ -117,6 +120,12 @@ class LSystemConfigManager:
     def set_theorem(self, key: str, value: str):
         self.theorems[key] = value
 
+    def get_line_length(self):
+        return self.line_length
+
+    def set_line_length(self, value: int):
+        self.line_length = value
+
     def get_rotate_angle(self):
         return self.rotate_angle
 
@@ -142,6 +151,7 @@ class LSystemConfigWindow(QMainWindow, UILSystemConfigWindow):
         self.confirm_btn.clicked.connect(self.update_manager)
         self.axiom_input.setText(self.manager.get_axiom())
         self.rotate_angle_input.setValue(self.manager.get_rotate_angle())
+        self.line_length_input.setValue(self.manager.get_line_length())
         for th_input, th_output in self.manager.get_theorems().items():
             self.add_theorem(th_input, th_output)
 
@@ -167,9 +177,11 @@ class LSystemConfigWindow(QMainWindow, UILSystemConfigWindow):
                 return
             theorems[th_input] = th_output
         rotate_angle = self.rotate_angle_input.value()
+        line_length = self.line_length_input.value()
         self.manager.set_axiom(axiom)
         self.manager.set_theorems(theorems)
         self.manager.set_rotate_angle(rotate_angle)
+        self.manager.set_line_length(line_length)
         self.manager.update_generator_configuration()
         self.close()
 
