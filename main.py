@@ -14,16 +14,16 @@ import constants as cst
 class FractalGeneratorWindow(QMainWindow, UIImageWindow):
     def __init__(self):
         super().__init__()
-        self.l_system_config_manager = LSystemConfigManager(self, "X",
-                                                            {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"},
-                                                            90)
-        self.parser = LStringParser("X", {"X": "-YF+XFX+FY-", "Y": "+XF-YFY-FX+"}, 16)
+        self.l_config_manager = LSystemConfigManager(self, cst.INIT_AXIOM,
+                                                     cst.INIT_THEOREMS,
+                                                     cst.INIT_DELTA_ANGLE)
+        self.parser = LStringParser(cst.INIT_AXIOM, cst.INIT_THEOREMS, cst.CASH_SIZE)
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        self.iteration = 0
         self.initUI()
 
     def initUI(self):
-        self.setupUi(self)
+        # self.setupUi(self)
+        uic.loadUi("design/image_window.ui", self)
         self.next_iteration_btn.clicked.connect(self.next_iteration)
         self.previous_iteration_btn.clicked.connect(self.previous_iteration)
         self.save_image_action.triggered.connect(self.save_in_file)
@@ -32,20 +32,29 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
 
     def draw(self):
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        self.parser.draw(self.iteration, 10, self.l_system_config_manager.get_rotate_angle(),
-                         self.image, 10, 502)
+        l_string_length = self.parser.draw(self.l_config_manager.get_iteration(), cst.LINE_LENGTH,
+                                           self.l_config_manager.get_rotate_angle(),
+                                           self.image, 10, 502)
+        self.l_config_manager.set_l_string_length(l_string_length)
         self.image_container.setPixmap(QPixmap.fromImage(self.image))
-        self.iteration_count_output.setText(f"Итерация: {self.iteration}")
+        self.iteration_count_output.setText(f"Итерация: {self.l_config_manager.get_iteration()}")
 
     def next_iteration(self):
-        if self.iteration < 7:
-            self.iteration += 1
+        if self.l_config_manager.get_l_string_length() < cst.MAX_STRING_LENGTH:
+            self.l_config_manager.set_iteration(self.l_config_manager.get_iteration() + 1)
             self.draw()
+        else:
+            self.statusbar.showMessage("Слишком большая длина l-строки, "
+                                       "увеличение итерации заблокировано",
+                                       cst.STATUS_BAR_TIMEOUT)
 
     def previous_iteration(self):
-        if self.iteration > 0:
-            self.iteration -= 1
+        if self.l_config_manager.get_iteration() > 0:
+            self.l_config_manager.set_iteration(self.l_config_manager.get_iteration() - 1)
             self.draw()
+        else:
+            self.statusbar.showMessage("Итерация не может быть отрицательной",
+                                       cst.STATUS_BAR_TIMEOUT)
 
     def save_in_file(self):
         filename = QFileDialog.getSaveFileName(self, "Выберите файл", "", "Изображение(*.png)")[0]
@@ -54,13 +63,13 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
         self.image.save(filename)
 
     def open_l_system_config_window(self):
-        window = LSystemConfigWindow(self, self.l_system_config_manager)
+        window = LSystemConfigWindow(self, self.l_config_manager)
         window.show()
 
     def update_l_system_configuration(self):
-        self.parser = LStringParser(self.l_system_config_manager.get_axiom(),
-                                    self.l_system_config_manager.get_theorems(), 16)
-        self.iteration = 0
+        self.parser = LStringParser(self.l_config_manager.get_axiom(),
+                                    self.l_config_manager.get_theorems(), 16)
+        self.l_config_manager.set_iteration(0)
         self.draw()
 
 
@@ -71,6 +80,24 @@ class LSystemConfigManager:
         self.axiom = axiom
         self.theorems = theorems.copy()
         self.rotate_angle = rotate_angle
+        self.iteration = 0
+        self.l_string_length = 0
+
+    def get_iteration(self):
+        return self.iteration
+
+    def set_iteration(self, value: int):
+        if not isinstance(value, int):
+            raise TypeError(f"Required type: int; Received type: {type(value)}")
+        if value < 0:
+            raise ValueError(f"Negative value: {value}")
+        self.iteration = value
+
+    def get_l_string_length(self):
+        return self.l_string_length
+
+    def set_l_string_length(self, value):
+        self.l_string_length = value
 
     def get_axiom(self):
         return self.axiom
@@ -109,7 +136,8 @@ class LSystemConfigWindow(QMainWindow, UILSystemConfigWindow):
         self.theorems_sa.setWidget(self.theorems_list)
 
     def initUI(self):
-        self.setupUi(self)
+        # self.setupUi(self)
+        uic.loadUi("design/l_system_config_window.ui", self)
         self.add_theorem_btn.clicked.connect(lambda: self.add_theorem())
         self.confirm_btn.clicked.connect(self.update_manager)
         self.axiom_input.setText(self.manager.get_axiom())
@@ -171,7 +199,8 @@ class TheoremWidget(QWidget, UITheoremWidget):
         self.theorem_output.setText(th_output)
 
     def initUI(self):
-        self.setupUi(self)
+        # self.setupUi(self)
+        uic.loadUi("design/theorem_widget.ui", self)
         self.delete_theorem_btn.clicked.connect(self.delete)
 
     def get_theorem(self):
@@ -193,7 +222,8 @@ class LStringParser(LSystem):
         qp = QPainter()
         qp.begin(canvas)
         qp.setPen(QColor(0, 0, 0))
-        for char in self[iteration]:
+        l_string = self[iteration]
+        for char in l_string:
             if char in ("F", "f", "G", "g"):
                 x1 = round(x_coord + line_length * cos(radians(angle)))
                 y1 = round(y_coord - line_length * sin(radians(angle)))
@@ -214,6 +244,7 @@ class LStringParser(LSystem):
             elif char == "]":
                 angle, x_coord, y_coord = save_data.pop()
         qp.end()
+        return len(l_string)
 
 
 def excepthook(cls, value, traceback):
