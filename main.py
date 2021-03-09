@@ -1,11 +1,12 @@
 import sys
 from math import sin, cos, radians
 from typing import Dict
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QVBoxLayout, QWidget, QTextEdit
 from PyQt5.QtGui import QPainter, QPixmap, QImage, QPen, QColor
 from PyQt5 import uic
 from image_window import Ui_MainWindow as UIImageWindow
 from l_system_config_window import Ui_MainWindow as UILSystemConfigWindow
+from help_window import Ui_MainWindow as UiHelpWindow
 from theorem_widget import Ui_Form as UITheoremWidget
 from l_system import LSystem
 import constants as cst
@@ -23,20 +24,35 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
         self.initUI()
 
     def initUI(self):
-        # self.setupUi(self)
-        uic.loadUi("design/image_window.ui", self)
+        self.setupUi(self)
+        # uic.loadUi("design/image_window.ui", self)
         self.next_iteration_btn.clicked.connect(self.next_iteration)
         self.previous_iteration_btn.clicked.connect(self.previous_iteration)
         self.save_image_action.triggered.connect(self.save_in_file)
         self.configuration_action.triggered.connect(self.open_l_system_config_window)
+        self.help_l_system_action.triggered.connect(
+            lambda: self.open_help_window(cst.L_SYSTEM_HELP_HTML))
+        self.help_work_with_program_action.triggered.connect(
+            lambda: self.open_help_window(cst.WORK_WITH_PROGRAM_HELP_HTML))
+        self.help_graphic_commands_action.triggered.connect(
+            lambda: self.open_help_window(cst.GRAPHIC_COMMANDS_HELP_HTML)
+        )
+        self.help_fractals_examples_action.triggered.connect(
+            lambda: self.open_help_window(cst.FRACTALS_EXAMPLES_HELP_HTML)
+        )
         self.draw()
 
     def draw(self):
         self.image = QImage(512, 512, QImage.Format_ARGB32_Premultiplied)
-        l_string_length = self.parser.draw(self.l_config_manager.get_iteration(),
-                                           self.l_config_manager.get_line_length(),
-                                           self.l_config_manager.get_rotate_angle(),
-                                           self.image, 10, 502)
+        try:
+            l_string_length = self.parser.draw(self.l_config_manager.get_iteration(),
+                                               self.l_config_manager.get_line_length(),
+                                               self.l_config_manager.get_rotate_angle(),
+                                               self.image, 10, 502)
+        except IndexError:
+            self.statusbar.showMessage("Попытка извлечь состояние пера из пустого стека",
+                                       cst.STATUS_BAR_TIMEOUT)
+            return
         self.l_config_manager.set_l_string_length(l_string_length)
         self.image_container.setPixmap(QPixmap.fromImage(self.image))
         self.iteration_count_output.setText(f"Итерация: {self.l_config_manager.get_iteration()}")
@@ -74,6 +90,11 @@ class FractalGeneratorWindow(QMainWindow, UIImageWindow):
         self.l_config_manager.set_iteration(0)
         self.draw()
 
+    def open_help_window(self, html_text):
+        window = HelpWindow(self)
+        window.set_html(html_text)
+        window.show()
+
 
 class LSystemConfigManager:
     def __init__(self, fr_generator: FractalGeneratorWindow, axiom: str,
@@ -99,7 +120,7 @@ class LSystemConfigManager:
     def get_l_string_length(self):
         return self.l_string_length
 
-    def set_l_string_length(self, value):
+    def set_l_string_length(self, value: int):
         self.l_string_length = value
 
     def get_axiom(self):
@@ -145,8 +166,8 @@ class LSystemConfigWindow(QMainWindow, UILSystemConfigWindow):
         self.theorems_sa.setWidget(self.theorems_list)
 
     def initUI(self):
-        # self.setupUi(self)
-        uic.loadUi("design/l_system_config_window.ui", self)
+        self.setupUi(self)
+        # uic.loadUi("design/l_system_config_window.ui", self)
         self.add_theorem_btn.clicked.connect(lambda: self.add_theorem())
         self.confirm_btn.clicked.connect(self.update_manager)
         self.axiom_input.setText(self.manager.get_axiom())
@@ -211,8 +232,8 @@ class TheoremWidget(QWidget, UITheoremWidget):
         self.theorem_output.setText(th_output)
 
     def initUI(self):
-        # self.setupUi(self)
-        uic.loadUi("design/theorem_widget.ui", self)
+        self.setupUi(self)
+        # uic.loadUi("design/theorem_widget.ui", self)
         self.delete_theorem_btn.clicked.connect(self.delete)
 
     def get_theorem(self):
@@ -226,7 +247,7 @@ class LStringParser(LSystem):
     def __init__(self, axiom: str, theorems: Dict[str, str], cash_size: int = 16):
         super().__init__(axiom, theorems, cash_size)
 
-    def draw(self, iteration: int, line_length, delta_angle, canvas, x0, y0):
+    def draw(self, iteration: int, line_length: int, delta_angle: float, canvas, x0: int, y0: int):
         save_data = []
         x_coord = x0
         y_coord = y0
@@ -257,6 +278,23 @@ class LStringParser(LSystem):
                 angle, x_coord, y_coord = save_data.pop()
         qp.end()
         return len(l_string)
+
+
+class HelpWindow(QMainWindow, UiHelpWindow):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.text_edit = None
+        self.initUI()
+
+    def initUI(self):
+        self.setupUi(self)
+        # uic.loadUi("design/help_window.ui", self)
+        self.text_edit = QTextEdit(self)
+        self.scroll_area.setWidget(self.text_edit)
+        self.text_edit.setReadOnly(True)
+
+    def set_html(self, html_text):
+        self.text_edit.setHtml(html_text)
 
 
 def excepthook(cls, value, traceback):
